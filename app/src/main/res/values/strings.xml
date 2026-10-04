@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SoKo Browser</string>
+    
+    <!-- Secure DNS -->
+    <string name="settings_privacy_security">Privacy &amp; Security</string>
+    <string name="use_secure_dns">Use Secure DNS</string>
+    <string name="secure_dns_summary">Encrypt DNS queries to prevent censorship &amp; tracking</string>
+    <string name="secure_dns_provider">DNS Provider</string>
+    <string name="secure_dns_custom">Custom DoH URL</string>
+    <string name="recommended_for_indonesia">🇮🇩 Recommended for Indonesia</string>
+    <string name="no_vpn_needed">✅ No VPN required — encrypted DNS bypasses blocking</string>
+</resources>
