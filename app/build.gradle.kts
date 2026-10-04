@@ -9,10 +9,10 @@ android {
 
     defaultConfig {
         applicationId = "com.soko.browser"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
-        versionCode = 20270101
-        versionName = "2027.1.0-global-id"
+        versionCode = 156080784
+        versionName = "156.0.8078.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -42,18 +42,29 @@ android {
     kotlinOptions {
         jvmTarget = "21"
     }
+
+    packaging {
+        resources {
+            excludes += listOf(
+                "/META-INF/**",
+                "org/chromium/**/*.version",
+                "com/google/**"
+            )
+        }
+    }
 }
 
 dependencies {
-    // Chromium core
-    implementation("org.chromium.android:content:131.0.6778.137")
-    implementation("org.chromium.android:chrome:131.0.6778.137")
+    // === CHROMIUM 156.0.8078.4 — FULL OPEN SOURCE ===
+    implementation("org.chromium.android:content:156.0.8078.4")
+    implementation("org.chromium.android:chrome:156.0.8078.4")
+    implementation("org.chromium.android:extensions:156.0.8078.4")
+    implementation("org.chromium.android:components:156.0.8078.4")
     
-    // MV3 extension support
-    implementation("org.chromium.android:extensions:131.0.6778.137")
+    // AndroidX
+    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("androidx.webkit:webkit:1.12.1")
     
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
 }
