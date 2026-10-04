@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "SoKo AdBlock MV3",
+  "version": "1.0.0",
+  "description": "Content blocking — Chrome Web Store MV3 compliant",
+  "permissions": ["declarativeNetRequest"],
+  "host_permissions": ["<all_urls>"],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "default-blocklist",
+        "enabled": true,
+        "path": "rules_blocklist.json"
+      }
+    ]
+  }
+}
