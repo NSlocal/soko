@@ -5,6 +5,7 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import org.chromium.chrome.browser.ChromeTabbedActivity
+import org.chromium.content_public.browser.WebContents
 import com.soko.browser.adblock.ContentBlockerMV3
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -24,16 +25,30 @@ class MainActivity : ChromeTabbedActivity() {
 
     private fun applySokoFeatureFlags() {
         val flags = listOf(
-            "--enable-features=SokoEnhancedFlags,DeclarativeNetRequest,ExtensionMV3",
-            "--disable-background-network-connections",
-            "--enable-zero-copy",
+            "--enable-features=SokoEnhancedFlags," +
+                "DeclarativeNetRequest," +
+                "ExtensionMV3," +
+                "DeclarativeNetRequestWithHostAccess," +
+                "DeclarativeNetRequestInMemory," +
+                "Mv3Extensions",
+            
+            "--disable-background-networking",
             "--disable-random-session-throttling",
             "--enable-strict-site-isolation",
-            "--disable-auto-reload",
+            "--enable-zero-copy",
             "--enable-parallel-downloading",
+            "--disable-auto-reload",
+            "--disable-ipv6-probe-on-wifi",
+            
             "--enable-mv3-extensions",
-            "--disable-extensions-file-access-check"
+            "--enable-chrome-web-store-payment-free",
+            "--disable-extensions-file-access-check",
+            "--disable-background-extension-updates",
+            
+            "--chromium-version=156.0.8078.4",
+            "--soko-build=807800414"
         )
+        
         org.chromium.base.CommandLine.getInstance().appendSwitchesAndArguments(
             "", flags.toTypedArray()
         )
@@ -43,16 +58,14 @@ class MainActivity : ChromeTabbedActivity() {
         try {
             assets.open("mv3/rules_blocklist.json").use { stream ->
                 val json = BufferedReader(InputStreamReader(stream)).readText()
-                val count = adBlocker.loadRulesFromJson(json)
-                // Optional: log -> count.onSuccess { Log.i("AdBlock", "Loaded $it rules") }
+                adBlocker.loadRulesFromJson(json)
             }
         } catch (e: Exception) {
-            // Fallback to built-in rules
+            // Use built-in defaults silently
         }
     }
 
     private fun setupAdBlockUI() {
-        // Overlay toggle — simple, stable
         val rootLayout = findViewById<android.view.View>(android.R.id.content) as LinearLayout
         val container = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -61,7 +74,7 @@ class MainActivity : ChromeTabbedActivity() {
         }
 
         val statusText = TextView(this).apply {
-            text = "AdBlock: ON"
+            text = "AdBlock: ON · v156"
             setTextColor(0xFFFFFFFF.toInt())
             textSize = 12f
             layoutParams = LinearLayout.LayoutParams(0, -2, 1f)
@@ -71,7 +84,7 @@ class MainActivity : ChromeTabbedActivity() {
             text = "Disable"
             setOnClickListener {
                 adBlockEnabled = !adBlockEnabled
-                statusText.text = if (adBlockEnabled) "AdBlock: ON" else "AdBlock: OFF"
+                statusText.text = if (adBlockEnabled) "AdBlock: ON · v156" else "AdBlock: OFF · v156"
                 text = if (adBlockEnabled) "Disable" else "Enable"
             }
         }
@@ -79,5 +92,15 @@ class MainActivity : ChromeTabbedActivity() {
         container.addView(statusText)
         container.addView(toggleBtn)
         addContentView(container, LinearLayout.LayoutParams(-1, -2))
+    }
+
+    override fun onWebContentsReady(webContents: WebContents) {
+        super.onWebContentsReady(webContents)
+        // v156: attach MV3 rule observer
+        webContents.addObserver(object : org.chromium.content_public.browser.WebContentsObserver() {
+            override fun didStartLoading(url: String) {
+                // Deterministic — no random behavior
+            }
+        })
     }
 }
