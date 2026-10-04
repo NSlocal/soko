@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build:
-    name: Build Signed Release APK
+    name: Build APK
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -25,7 +25,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Auto-fix gradle-wrapper.jar
+      - name: Auto-fix Gradle wrapper
         run: |
           if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
             curl -L -o gradle/wrapper/gradle-wrapper.jar \
@@ -36,40 +36,44 @@ jobs:
       - name: Make scripts executable
         run: chmod +x gradlew
 
-      - name: Build & Sign Release APK
+      - name: Build APK
         env:
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
         run: |
-          # Decode base64 keystore → binary file
-          if [ -n "$SIGNING_KEY" ]; then
-            echo "$SIGNING_KEY" | base64 -d > keystore.jks
-            echo "✅ Keystore decoded OK"
-          else
-            echo "⚠️ No SIGNING_KEY — building unsigned APK"
+          # Only decode & use keystore if ALL secrets exist
+          USE_SIGNING=0
+          if [ -n "$SIGNING_KEY" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PASSWORD" ] && [ -n "$STORE_PASSWORD" ]; then
+            echo "$SIGNING_KEY" | tr -d '\n' | base64 -d > keystore.jks && USE_SIGNING=1
           fi
 
-          # Build
-          ./gradlew clean assembleRelease \
-            -PkeystoreFile=keystore.jks \
-            -PkeystorePassword="$STORE_PASSWORD" \
-            -PkeyAlias="$KEY_ALIAS" \
-            -PkeyPassword="$KEY_PASSWORD"
+          if [ $USE_SIGNING -eq 1 ]; then
+            echo "✅ Building SIGNED APK..."
+            ./gradlew clean assembleRelease \
+              -PkeystoreFile=keystore.jks \
+              -PkeystorePassword="$STORE_PASSWORD" \
+              -PkeyAlias="$KEY_ALIAS" \
+              -PkeyPassword="$KEY_PASSWORD"
+          else
+            echo "⚠️ Building UNSIGNED APK — no signing secrets set"
+            ./gradlew clean assembleRelease
+          fi
 
-          # Show result
-          echo "--- Build output ---"
-          ls -la app/build/outputs/apk/release/ || true
+          echo "--- Build result ---"
+          ls -la app/build/outputs/apk/release/ 2>/dev/null || ls -la app/build/outputs/apk/debug/ 2>/dev/null
 
-      - name: Upload APK Artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: SoKo-Browser-APK
-          path: app/build/outputs/apk/release/*.apk
+          path: |
+            app/build/outputs/apk/release/*.apk
+            app/build/outputs/apk/debug/*.apk
           retention-days: 90
 
-      - name: Create GitHub Release
+      - name: Create Release
         if: success()
         uses: softprops/action-gh-release@v2
         with:
@@ -81,5 +85,8 @@ jobs:
             - Build: `807800414`
             - MV3 AdBlock + Secure DNS
             - Android 16 / Global Indonesia
-          files: app/build/outputs/apk/release/*.apk
+            - **Unsigned APK** — ready to install/test
+          files: |
+            app/build/outputs/apk/release/*.apk
+            app/build/outputs/apk/debug/*.apk
           overwrite_files: true
