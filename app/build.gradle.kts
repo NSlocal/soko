@@ -45,10 +45,15 @@ android {
 }
 
 dependencies {
-    // Chromium-based browser core
+    // Chromium core
     implementation("org.chromium.android:content:131.0.6778.137")
     implementation("org.chromium.android:chrome:131.0.6778.137")
     
+    // MV3 extension support
+    implementation("org.chromium.android:extensions:131.0.6778.137")
+    
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
+    
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
 }
