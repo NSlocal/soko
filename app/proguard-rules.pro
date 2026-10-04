@@ -1,14 +1,18 @@
-# Add project specific ProGuard rules here.
--optimizationpasses 5
+-optimizationpasses 6
 -dontusemixedcaseclassnames
 -dontskipnonpubliclibraryclasses
 -dontpreverify
 -verbose
--optimizations !code/simplification/arithmetic,!field/*,!class/merging/*
 
-# Chromium/Cronet keep rules
+# Chromium 156 — keep all core
 -keep class org.chromium.** { *; }
+-keepnames class org.chromium.** { *; }
 -dontwarn org.chromium.**
 
-# SoKo Browser — preserve all main classes
+# SoKo Browser
 -keep class com.soko.browser.** { *; }
+-keepnames class com.soko.browser.** { *; }
+
+# MV3 Extensions
+-keep class org.chromium.extensions.** { *; }
+-dontwarn org.chromium.extensions.**
