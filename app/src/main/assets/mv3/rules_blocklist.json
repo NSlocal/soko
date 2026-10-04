@@ -1,0 +1,14 @@
+{
+  "rules": [
+    {"id": 1, "priority": 1, "condition": {"urlFilter": "*://*.doubleclick.net/*", "resourceTypes": ["script", "image", "stylesheet", "media", "xmlhttprequest"]}, "action": {"type": "block"}},
+    {"id": 2, "priority": 1, "condition": {"urlFilter": "*://*.googleadservices.com/*", "resourceTypes": ["script", "image", "stylesheet", "media"]}, "action": {"type": "block"}},
+    {"id": 3, "priority": 1, "condition": {"urlFilter": "*://*.adroll.com/*", "resourceTypes": ["script", "image", "xmlhttprequest"]}, "action": {"type": "block"}},
+    {"id": 4, "priority": 1, "condition": {"urlFilter": "*://*.amazon-adsystem.com/*", "resourceTypes": ["script", "image", "iframe"]}, "action": {"type": "block"}},
+    {"id": 5, "priority": 1, "condition": {"urlFilter": "*://*.taboola.com/*", "resourceTypes": ["script", "image", "xmlhttprequest"]}, "action": {"type": "block"}},
+    {"id": 6, "priority": 1, "condition": {"urlFilter": "*://*.outbrain.com/*", "resourceTypes": ["script", "image"]}, "action": {"type": "block"}},
+    {"id": 7, "priority": 1, "condition": {"urlFilter": "*://*.criteo.com/*", "resourceTypes": ["script", "image", "xmlhttprequest"]}, "action": {"type": "block"}},
+    {"id": 8, "priority": 1, "condition": {"urlFilter": "*://*/ads/*", "resourceTypes": ["script", "image", "stylesheet", "media"]}, "action": {"type": "block"}},
+    {"id": 9, "priority": 1, "condition": {"urlFilter": "*://*/advertisement/*", "resourceTypes": ["script", "image"]}, "action": {"type": "block"}},
+    {"id": 10, "priority": 2, "condition": {"urlFilter": "*", "domains": ["youtube.com", "google.com"], "resourceTypes": ["script", "image"]}, "action": {"type": "allow"}}
+  ]
+}
