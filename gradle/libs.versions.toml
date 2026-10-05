@@ -1,20 +1,16 @@
 [versions]
-# Build Tools
 agp = "8.7.2"
 kotlin = "2.0.21"
 gradle = "8.11.1"
 
-# AndroidX
 coreKtx = "1.13.1"
 appcompat = "1.7.0"
 material = "1.12.0"
 
-# Chromium / Browser
 chromiumVersion = "156.0.8078.4"
 buildNumber = "807800414"
 
 [libraries]
-# AndroidX
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 google-material = { group = "com.google.android.material", name = "material", version.ref = "material" }
