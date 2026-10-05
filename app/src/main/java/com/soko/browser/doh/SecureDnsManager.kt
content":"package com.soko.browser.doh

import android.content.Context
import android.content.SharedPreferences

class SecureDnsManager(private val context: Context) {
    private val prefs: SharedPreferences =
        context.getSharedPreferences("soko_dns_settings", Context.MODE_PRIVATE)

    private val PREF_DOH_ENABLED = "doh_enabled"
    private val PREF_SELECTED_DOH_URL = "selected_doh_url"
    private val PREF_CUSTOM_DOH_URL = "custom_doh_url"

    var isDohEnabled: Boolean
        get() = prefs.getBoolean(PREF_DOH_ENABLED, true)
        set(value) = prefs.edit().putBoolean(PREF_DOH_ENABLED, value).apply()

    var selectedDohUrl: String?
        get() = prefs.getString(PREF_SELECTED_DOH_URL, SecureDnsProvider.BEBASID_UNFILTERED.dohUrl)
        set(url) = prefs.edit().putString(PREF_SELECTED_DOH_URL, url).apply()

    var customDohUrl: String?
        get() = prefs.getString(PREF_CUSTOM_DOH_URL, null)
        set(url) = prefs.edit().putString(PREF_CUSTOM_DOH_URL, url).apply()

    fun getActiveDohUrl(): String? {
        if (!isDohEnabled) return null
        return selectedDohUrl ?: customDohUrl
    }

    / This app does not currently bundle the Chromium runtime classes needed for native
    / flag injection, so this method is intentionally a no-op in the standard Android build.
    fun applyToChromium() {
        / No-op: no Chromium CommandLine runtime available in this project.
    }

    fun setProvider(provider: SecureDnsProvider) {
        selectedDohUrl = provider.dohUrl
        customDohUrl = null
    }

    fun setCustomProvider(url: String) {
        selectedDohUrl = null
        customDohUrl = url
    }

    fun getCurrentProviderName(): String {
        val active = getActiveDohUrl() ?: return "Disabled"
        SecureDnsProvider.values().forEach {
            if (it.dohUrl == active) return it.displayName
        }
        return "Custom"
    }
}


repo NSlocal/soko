@@ -1,0 +1,156 @@
+package com.soko.browser
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
+import com.soko.browser.adblock.ContentBlockerMV3
+import com.soko.browser.doh.SecureDnsManager
+import com.soko.browser.doh.SecureDnsProvider
+
+class MainActivity : AppCompatActivity() {
+    private lateinit var adBlocker: ContentBlockerMV3
+    private lateinit var dnsManager: SecureDnsManager
+    private var adBlockEnabled = true
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        dnsManager = SecureDnsManager(this)
+        super.onCreate(savedInstanceState)
+
+        adBlocker = ContentBlockerMV3.getInstance()
+        loadMv3RulesFromAssets()
+        setupDnsSettingsUI()
+        setupAdBlockUI()
+    }
+
+    private fun applyAllChromiumFlags() {
+        // Chromium-specific flags are intentionally disabled in this build because the app
+        // does not ship the Chromium framework classes required by the browser integration.
+    }
+
+    private fun setupDnsSettingsUI() {
+        val root = findViewById<android.view.View>(android.R.id.content) as LinearLayout
+        val dnsPanel = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(20, 16, 20, 12)
+            setBackgroundColor(0xFF1E1E1E.toInt())
+        }
+
+        dnsPanel.addView(TextView(this).apply {
+            text = "🔒 Privacy & Security — Secure DNS"
+            textSize = 15f
+            setTextColor(0xFFFFFFFF.toInt())
+            setPadding(0, 0, 0, 10)
+        })
+
+        val dnsStatus = TextView(this).apply {
+            text = "Active: ${dnsManager.getCurrentProviderName()}"
+            textSize = 12f
+            setTextColor(0xFF88FF88.toInt())
+            setPadding(0, 0, 0, 8)
+        }
+        dnsPanel.addView(dnsStatus)
+
+        val dnsToggle = Switch(this).apply {
+            text = "Enable Secure DNS (Encrypted)"
+            isChecked = dnsManager.isDohEnabled
+            setTextColor(0xFFFFFFFF.toInt())
+            setOnCheckedChangeListener { _, isChecked ->
+                dnsManager.isDohEnabled = isChecked
+                dnsStatus.text = if (isChecked)
+                    "Active: ${dnsManager.getCurrentProviderName()}"
+                else "Secure DNS DISABLED (using network default)"
+                dnsStatus.setTextColor(if (isChecked) 0xFF88FF88.toInt() else 0xFFFF8888.toInt())
+                Toast.makeText(this@MainActivity,
+                    "DNS settings updated", Toast.LENGTH_LONG).show()
+            }
+        }
+        dnsPanel.addView(dnsToggle)
+
+        val recommended = SecureDnsProvider.getRecommendedForIndonesia()
+        val providerLabels = recommended.map { "${it.displayName} — ${it.location}" }.toMutableList()
+        providerLabels.add("Custom (enter DoH URL)")
+
+        val spinner = Spinner(this).apply {
+            adapter = ArrayAdapter(this@MainActivity,
+                android.R.layout.simple_spinner_item, providerLabels)
+            setSelection(0)
+            onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(p: AdapterView<*>?, v: android.view.View?, pos: Int, id: Long) {
+                    if (pos < recommended.size) {
+                        dnsManager.setProvider(recommended[pos])
+                        dnsStatus.text = "Selected: ${recommended[pos].displayName}"
+                        dnsStatus.setTextColor(0xFF88FF88.toInt())
+                    }
+                }
+                override fun onNothingSelected(p: AdapterView<*>?) {}
+            }
+        }
+        dnsPanel.addView(spinner)
+
+        val customInput = EditText(this).apply {
+            hint = "Or paste custom DoH URL (e.g. https://.../dns-query)"
+            setTextColor(0xFFFFFFFF.toInt())
+            setHintTextColor(0xFF888888.toInt())
+            setBackgroundColor(0xFF2A2A2A.toInt())
+            setPadding(12, 12, 12, 12)
+            layoutParams = LinearLayout.LayoutParams(-1, -2).apply { topMargin = 8 }
+        }
+        dnsPanel.addView(customInput)
+
+        dnsPanel.addView(Button(this).apply {
+            text = "Set Custom DNS"
+            setOnClickListener {
+                val url = customInput.text.toString().trim()
+                if (url.startsWith("https://") && url.contains("dns-query")) {
+                    dnsManager.setCustomProvider(url)
+                    dnsStatus.text = "Custom DNS active ✅"
+                    dnsStatus.setTextColor(0xFF88FF88.toInt())
+                    Toast.makeText(this@MainActivity,
+                        "Custom DNS set", Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(this@MainActivity,
+                        "Enter valid DoH URL (https://.../dns-query)", Toast.LENGTH_SHORT).show()
+                }
+            }
+        })
+
+        root.addView(dnsPanel)
+    }
+
+    private fun loadMv3RulesFromAssets() {
+        try {
+            assets.open("mv3/rules_blocklist.json").use { stream ->
+                val json = java.io.BufferedReader(java.io.InputStreamReader(stream)).readText()
+                adBlocker.loadRulesFromJson(json)
+            }
+        } catch (e: Exception) {}
+    }
+
+    private fun setupAdBlockUI() {
+        val root = findViewById<android.view.View>(android.R.id.content) as LinearLayout
+        val panel = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(16, 8, 16, 8)
+            setBackgroundColor(0xCC2D2D2D.toInt())
+        }
+        val status = TextView(this).apply {
+            text = "AdBlock: ON · v156"
+            setTextColor(0xFFFFFFFF.toInt())
+            textSize = 12f
+            layoutParams = LinearLayout.LayoutParams(0, -2, 1f)
+        }
+        val btn = Button(this).apply {
+            text = "Disable"
+            setOnClickListener {
+                adBlockEnabled = !adBlockEnabled
+                status.text = if (adBlockEnabled) "AdBlock: ON · v156" else "AdBlock: OFF · v156"
+                text = if (adBlockEnabled) "Disable" else "Enable"
+            }
+        }
+        panel.addView(status)
+        panel.addView(btn)
+        root.addView(panel)
+    }
+}
+
